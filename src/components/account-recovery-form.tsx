@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/email-otp";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { trackProductEvent } from "@/lib/analytics/client";
 
 export function AccountRecoveryForm() {
   const router = useRouter();
@@ -18,9 +19,12 @@ export function AccountRecoveryForm() {
   const [flow, setFlow] = useState<EmailOtpFlow | null>(null);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"error" | "info">("info");
-  const [status, setStatus] = useState<"idle" | "sending" | "verifying">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "verifying">(
+    "idle",
+  );
 
   async function requestCode() {
+    void trackProductEvent("email_binding_started");
     setMessage("");
     if (!isSupabaseConfigured()) {
       setMessageTone("error");
@@ -35,7 +39,9 @@ export function AccountRecoveryForm() {
       const nextFlow = selectEmailOtpFlow(Boolean(data.user?.is_anonymous));
 
       if (nextFlow === "email_change") {
-        const { error: updateError } = await supabase.auth.updateUser({ email });
+        const { error: updateError } = await supabase.auth.updateUser({
+          email,
+        });
         if (updateError) throw updateError;
       } else {
         const { error: signInError } = await supabase.auth.signInWithOtp({
@@ -47,10 +53,14 @@ export function AccountRecoveryForm() {
       setFlow(nextFlow);
       setOtp("");
       setMessageTone("info");
-      setMessage("6 位验证码已发送，请在当前页面输入。验证码一分钟后可重新发送。");
+      setMessage(
+        "6 位验证码已发送，请在当前页面输入。验证码一分钟后可重新发送。",
+      );
     } catch (error) {
       setMessageTone("error");
-      setMessage(error instanceof Error ? error.message : "发送失败，请稍后重试。");
+      setMessage(
+        error instanceof Error ? error.message : "发送失败，请稍后重试。",
+      );
     } finally {
       setStatus("idle");
     }
@@ -78,11 +88,16 @@ export function AccountRecoveryForm() {
         type: flow,
       });
       if (error) throw error;
+      void trackProductEvent("email_binding_completed");
       router.replace("/progress");
       router.refresh();
     } catch (error) {
       setMessageTone("error");
-      setMessage(error instanceof Error ? error.message : "验证码无效或已过期，请重新获取。");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "验证码无效或已过期，请重新获取。",
+      );
     } finally {
       setStatus("idle");
     }
@@ -97,8 +112,11 @@ export function AccountRecoveryForm() {
   if (flow) {
     return (
       <form className="recovery-form" onSubmit={verifyCode}>
-        <p className="otp-destination">验证码已发送至 <strong>{email}</strong></p>
-        <label>6 位验证码
+        <p className="otp-destination">
+          验证码已发送至 <strong>{email}</strong>
+        </p>
+        <label>
+          6 位验证码
           <input
             autoComplete="one-time-code"
             autoFocus
@@ -110,25 +128,71 @@ export function AccountRecoveryForm() {
             value={otp}
           />
         </label>
-        <button className="primary-button" disabled={status !== "idle" || !isCompleteEmailOtp(otp)} type="submit">
+        <button
+          className="primary-button"
+          disabled={status !== "idle" || !isCompleteEmailOtp(otp)}
+          type="submit"
+        >
           {status === "verifying" ? "正在验证…" : "验证并继续"}
         </button>
         <div className="otp-actions">
-          <button disabled={status !== "idle"} onClick={requestCode} type="button">重新发送</button>
-          <button disabled={status !== "idle"} onClick={changeEmail} type="button">更换邮箱</button>
+          <button
+            disabled={status !== "idle"}
+            onClick={requestCode}
+            type="button"
+          >
+            重新发送
+          </button>
+          <button
+            disabled={status !== "idle"}
+            onClick={changeEmail}
+            type="button"
+          >
+            更换邮箱
+          </button>
         </div>
-        {message ? <p className="form-message" data-tone={messageTone} role={messageTone === "error" ? "alert" : "status"}>{message}</p> : null}
+        {message ? (
+          <p
+            className="form-message"
+            data-tone={messageTone}
+            role={messageTone === "error" ? "alert" : "status"}
+          >
+            {message}
+          </p>
+        ) : null}
       </form>
     );
   }
 
   return (
     <form className="recovery-form" onSubmit={sendCode}>
-      <label>备份邮箱（可选）
-        <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
+      <label>
+        备份邮箱（可选）
+        <input
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="you@example.com"
+          required
+        />
       </label>
-      <button className="primary-button" disabled={status !== "idle"} type="submit">{status === "sending" ? "正在发送…" : "发送验证码"}</button>
-      {message ? <p className="form-message" data-tone={messageTone} role={messageTone === "error" ? "alert" : "status"}>{message}</p> : null}
+      <button
+        className="primary-button"
+        disabled={status !== "idle"}
+        type="submit"
+      >
+        {status === "sending" ? "正在发送…" : "发送验证码"}
+      </button>
+      {message ? (
+        <p
+          className="form-message"
+          data-tone={messageTone}
+          role={messageTone === "error" ? "alert" : "status"}
+        >
+          {message}
+        </p>
+      ) : null}
     </form>
   );
 }

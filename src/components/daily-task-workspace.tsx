@@ -9,6 +9,7 @@ import {
   validateTaskEvidence,
 } from "@/lib/exploration/tasks";
 import { shouldRestoreLocalTaskDraft } from "@/lib/exploration/domain";
+import { trackProductEvent } from "@/lib/analytics/client";
 
 type SaveState = "idle" | "saving" | "saved" | "offline" | "error";
 type StoredDraft = {
@@ -51,7 +52,11 @@ export function DailyTaskWorkspace({
         const local = JSON.parse(
           localStorage.getItem(storageKey) ?? "null",
         ) as StoredDraft | null;
-        if (local && !local.submitted && shouldRestoreLocalTaskDraft(local.revision, initialRevision))
+        if (
+          local &&
+          !local.submitted &&
+          shouldRestoreLocalTaskDraft(local.revision, initialRevision)
+        )
           return local;
       } catch {
         /* ignore invalid device draft */
@@ -68,6 +73,10 @@ export function DailyTaskWorkspace({
   const [submitting, setSubmitting] = useState(false);
   const latest = useRef(draft);
   const lastServerRevision = useRef(initialRevision);
+
+  useEffect(() => {
+    void trackProductEvent("task_started", { task: task.day });
+  }, [task.day]);
 
   const persist = useCallback(
     async (value: StoredDraft) => {
@@ -95,6 +104,10 @@ export function DailyTaskWorkspace({
         saved.data?.revision ?? 0,
       );
       setSaveState("saved");
+      void trackProductEvent("task_draft_saved", {
+        task: task.day,
+        revision: value.revision,
+      });
     },
     [explorationId, storageKey, task.day],
   );
@@ -220,45 +233,33 @@ export function DailyTaskWorkspace({
     setSubmitting(true);
     setMessage("");
     const supabase = createSupabaseBrowserClient();
-    if (task.day === 2) {
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) {
-        setMessage("会话已失效，请刷新后重试。");
-        setSubmitting(false);
-        return;
-      }
-      const commitment = await supabase
-        .from("commitments")
-        .insert({
-          exploration_id: explorationId,
-          user_id: user.id,
-          mode: validation.content.commitmentMode,
-          status: "ACTIVE",
-          action_statement: validation.content.smallestAction,
-          starts_at: new Date(validation.content.startsAt).toISOString(),
-          due_at: new Date(validation.content.dueAt).toISOString(),
-          timezone:
-            Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai",
-          success_rule: validation.content.successRule,
-          evidence_requirement: validation.content.evidenceRequirement,
-          reward_text: validation.content.rewardText,
-          recovery_action: validation.content.recoveryAction,
-          witness_label: validation.content.witnessLabel || null,
-        })
-        .select("id")
-        .single();
-      if (commitment.error) {
-        setMessage(commitment.error.message);
-        setSubmitting(false);
-        return;
-      }
-    }
-    const result = await supabase.rpc("submit_exploration_task", {
-      target_exploration: explorationId,
-      target_task: task.day,
-      payload: validation.content,
-      evidence_payload: evidencePayload(validation.content),
-    });
+    const result =
+      task.day === 2
+        ? await supabase.rpc("submit_task_two_with_commitment", {
+            target_exploration: explorationId,
+            payload: validation.content,
+            evidence_payload: evidencePayload(validation.content),
+            commitment_payload: {
+              mode: validation.content.commitmentMode,
+              action_statement: validation.content.smallestAction,
+              starts_at: new Date(validation.content.startsAt).toISOString(),
+              due_at: new Date(validation.content.dueAt).toISOString(),
+              timezone:
+                Intl.DateTimeFormat().resolvedOptions().timeZone ||
+                "Asia/Shanghai",
+              success_rule: validation.content.successRule,
+              evidence_requirement: validation.content.evidenceRequirement,
+              reward_text: validation.content.rewardText,
+              recovery_action: validation.content.recoveryAction,
+              witness_label: validation.content.witnessLabel,
+            },
+          })
+        : await supabase.rpc("submit_exploration_task", {
+            target_exploration: explorationId,
+            target_task: task.day,
+            payload: validation.content,
+            evidence_payload: evidencePayload(validation.content),
+          });
     if (result.error) {
       setMessage(result.error.message);
       setSubmitting(false);
@@ -272,6 +273,19 @@ export function DailyTaskWorkspace({
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(storageKey, JSON.stringify(complete));
+    void trackProductEvent("task_completed", { task: task.day });
+    void trackProductEvent("evidence_added", {
+      task: task.day,
+      count: evidencePayload(validation.content).length,
+    });
+    if (task.day === 2) {
+      void trackProductEvent("commitment_created");
+      void trackProductEvent("commitment_locked");
+    }
+    if (task.day === 7) {
+      void trackProductEvent("exploration_completed");
+      void trackProductEvent("report_generated");
+    }
     router.push("/progress");
     router.refresh();
   }
