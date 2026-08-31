@@ -1,7 +1,7 @@
 # Brief: Supabase email verification code
 
 **Date:** 2026-08-31  
-**Status:** Blocked on custom SMTP  
+**Status:** Implemented; production deployment pending  
 **Research question:** How should the app replace email links with an in-page verification-code flow without losing an anonymous user's existing exploration data?
 
 ## Recommendation
@@ -41,12 +41,12 @@ Use Supabase's native email OTP. For an anonymous user, call `updateUser({ email
 - [x] Replace the one-step form with email → code states.
 - [x] Preserve anonymous progress with `updateUser` and `email_change` verification.
 - [x] Support existing-account OTP sign-in with `shouldCreateUser: false`.
-- [ ] Update Supabase Magic Link and Change Email Address templates to show `{{ .Token }}`.
+- [x] Update Supabase Magic Link and Change Email Address templates to show `{{ .Token }}`.
 - [x] Add unit coverage for flow selection and code validation.
 - [x] Run tests, lint, and build.
 - [ ] Deploy and visually verify both steps after SMTP and templates are ready.
 
-## Open questions
+## Remaining verification
 
-- Supabase's hosted default mailer locks template editing and its default template contains only `{{ .ConfirmationURL }}`. A custom SMTP provider must be connected before the code-based flow can be published safely.
-- End-to-end email delivery remains unverified until a real mailbox is supplied for testing.
+- Custom SMTP is enabled and both production templates were saved and read back with `{{ .Token }}` and without `{{ .ConfirmationURL }}`.
+- End-to-end email delivery remains unverified until a real mailbox is deliberately used for testing.
