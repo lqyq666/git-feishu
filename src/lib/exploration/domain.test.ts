@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeSignal, resolveNewestDraft, validateDayOne } from "./domain";
+import { normalizeSignal, resolveNewestDraft, shouldRestoreLocalTaskDraft, validateDayOne } from "./domain";
 
 const signal = (type: "ENVY" | "CURIOSITY" | "DISSATISFACTION", source: string, attraction = "持续行动", willingCost = "每周投入四小时") => ({ type, source, attraction, willingCost, quickChips: [] });
 
@@ -34,5 +34,10 @@ describe("validateDayOne", () => {
     const local = { revision: 8, updatedAt: "2026-08-31T12:00:00Z", value: "local" };
     const server = { revision: 7, updatedAt: "2026-08-31T11:00:00Z", value: "server", submitted: true };
     expect(resolveNewestDraft(local, server)).toBe(server);
+  });
+
+  it("restores local wizard position when content revisions are equal", () => {
+    expect(shouldRestoreLocalTaskDraft(8, 8)).toBe(true);
+    expect(shouldRestoreLocalTaskDraft(8, 8, true)).toBe(false);
   });
 });

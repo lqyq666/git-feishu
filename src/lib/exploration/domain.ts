@@ -35,6 +35,10 @@ export function resolveNewestDraft<T extends { revision: number; updatedAt: stri
   return Date.parse(local.updatedAt) > Date.parse(server.updatedAt) ? local : server;
 }
 
+export function shouldRestoreLocalTaskDraft(localRevision: number, serverRevision: number, serverCompleted = false) {
+  return !serverCompleted && localRevision >= serverRevision;
+}
+
 export function inferStageJudgment(values: { continueDirection?: string; rejectedDirection?: string; insufficientDirection?: string; nextExperiment?: string }) {
   const result: StageJudgment[] = [];
   if (clean(values.continueDirection ?? "")) result.push("CONTINUE");

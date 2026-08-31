@@ -8,6 +8,7 @@ import {
   type ExplorationTask,
   validateTaskEvidence,
 } from "@/lib/exploration/tasks";
+import { shouldRestoreLocalTaskDraft } from "@/lib/exploration/domain";
 
 type SaveState = "idle" | "saving" | "saved" | "offline" | "error";
 type StoredDraft = {
@@ -50,7 +51,7 @@ export function DailyTaskWorkspace({
         const local = JSON.parse(
           localStorage.getItem(storageKey) ?? "null",
         ) as StoredDraft | null;
-        if (local && !local.submitted && local.revision > initialRevision)
+        if (local && !local.submitted && shouldRestoreLocalTaskDraft(local.revision, initialRevision))
           return local;
       } catch {
         /* ignore invalid device draft */
