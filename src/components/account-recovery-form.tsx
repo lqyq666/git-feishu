@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   isCompleteEmailOtp,
   normalizeEmailOtp,
-  selectEmailOtpFlow,
+  requestEmailOtp,
+  verifyEmailOtpPreservingIdentity,
   type EmailOtpFlow,
 } from "@/lib/auth/email-otp";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -17,6 +18,7 @@ export function AccountRecoveryForm() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [flow, setFlow] = useState<EmailOtpFlow | null>(null);
+  const [originalUserId, setOriginalUserId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"error" | "info">("info");
   const [status, setStatus] = useState<"idle" | "sending" | "verifying">(
@@ -34,23 +36,9 @@ export function AccountRecoveryForm() {
     setStatus("sending");
     try {
       const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.getUser();
-      if (error && error.name !== "AuthSessionMissingError") throw error;
-      const nextFlow = selectEmailOtpFlow(Boolean(data.user?.is_anonymous));
-
-      if (nextFlow === "email_change") {
-        const { error: updateError } = await supabase.auth.updateUser({
-          email,
-        });
-        if (updateError) throw updateError;
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: false },
-        });
-        if (signInError) throw signInError;
-      }
-      setFlow(nextFlow);
+      const request = await requestEmailOtp(supabase.auth, email);
+      setFlow(request.flow);
+      setOriginalUserId(request.originalUserId);
       setOtp("");
       setMessageTone("info");
       setMessage(
@@ -82,12 +70,12 @@ export function AccountRecoveryForm() {
     setMessage("");
     try {
       const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.verifyOtp({
+      await verifyEmailOtpPreservingIdentity(supabase.auth, {
         email,
         token: otp,
-        type: flow,
+        flow,
+        originalUserId,
       });
-      if (error) throw error;
       void trackProductEvent("email_binding_completed");
       router.replace("/progress");
       router.refresh();
@@ -105,6 +93,7 @@ export function AccountRecoveryForm() {
 
   function changeEmail() {
     setFlow(null);
+    setOriginalUserId(null);
     setOtp("");
     setMessage("");
   }
