@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root { --ink: #1d2b24; --muted: #607068; --paper: #f7f6f0; --panel: #fff; --line: #dce3d9; --accent: #176b4d; --accent-hover: #0f513a; --soft: #e8f3ed; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100%; background: var(--paper); color: var(--ink); font-family: Arial, "Microsoft YaHei", sans-serif; }
+button, input, textarea { font: inherit; }
+.shell { width: min(100% - 32px, 860px); margin: 0 auto; padding: 72px 0 96px; }
+.narrow-shell { width: min(100% - 32px, 640px); }
+.hero { max-width: 720px; }
+.eyebrow { margin: 0 0 12px; color: var(--accent); font-size: 14px; font-weight: 700; letter-spacing: .08em; }
+h1 { margin: 0; font-size: clamp(34px, 6vw, 58px); line-height: 1.14; letter-spacing: -.04em; }
+.lede { color: var(--muted); font-size: 18px; line-height: 1.7; }
+.notice, .progress-card { display: grid; gap: 4px; margin: 36px 0 24px; padding: 18px 20px; border: 1px solid #cde2d6; border-radius: 16px; background: var(--soft); }
+.notice span, .progress-card span { color: var(--muted); }
+.workspace { display: grid; gap: 18px; }
+.signal-card, .recovery-form { display: grid; gap: 14px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+.signal-card legend { padding: 0 6px; color: var(--accent); font-weight: 700; }
+.saved-hypothesis p { margin: -6px 0 8px; color: var(--muted); line-height: 1.65; }
+label { display: grid; gap: 7px; font-weight: 700; }
+input, textarea { width: 100%; border: 1px solid #bdc9c0; border-radius: 10px; padding: 12px; background: #fff; color: var(--ink); font-weight: 400; }
+textarea { min-height: 112px; resize: vertical; }
+input:focus, textarea:focus { outline: 3px solid #b9dec9; border-color: var(--accent); }
+.radio-row { grid-template-columns: auto 1fr; align-items: start; font-weight: 400; }
+.radio-row input { width: auto; margin-top: 4px; }
+.primary-button, .primary-link { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; border: 0; border-radius: 999px; padding: 0 24px; background: var(--accent); color: white; cursor: pointer; font-weight: 700; text-decoration: none; }
+.primary-button:hover, .primary-link:hover { background: var(--accent-hover); }
+.primary-button:disabled { cursor: wait; opacity: .6; }
+.form-message { margin: 0; color: #a13b20; line-height: 1.55; }
+.text-link { display: inline-block; margin-top: 22px; color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 600px) { .shell { padding-top: 48px; } .signal-card, .recovery-form { padding: 18px; } }
