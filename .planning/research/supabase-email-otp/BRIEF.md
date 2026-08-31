@@ -1,7 +1,7 @@
 # Brief: Supabase email verification code
 
 **Date:** 2026-08-31  
-**Status:** Implemented; production deployment pending  
+**Status:** Deployed and visually verified  
 **Research question:** How should the app replace email links with an in-page verification-code flow without losing an anonymous user's existing exploration data?
 
 ## Recommendation
@@ -44,7 +44,7 @@ Use Supabase's native email OTP. For an anonymous user, call `updateUser({ email
 - [x] Update Supabase Magic Link and Change Email Address templates to show `{{ .Token }}`.
 - [x] Add unit coverage for flow selection and code validation.
 - [x] Run tests, lint, and build.
-- [ ] Deploy and visually verify both steps after SMTP and templates are ready.
+- [x] Deploy and visually verify the production entry state after SMTP and templates are ready.
 
 ## Remaining verification
 
