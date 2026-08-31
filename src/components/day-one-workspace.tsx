@@ -150,8 +150,8 @@ export function DayOneWorkspace() {
         <p className="lede">写下三个人或现实样本：你羡慕什么，以及愿意为它承担什么代价。三条完整信号才会解锁 Day 2。</p>
       </section>
       <section className="notice" aria-live="polite">
-        <strong>你的进度会保存</strong>
-        <span>先以匿名会话进入；完成后可绑定邮箱，在另一台设备继续。</span>
+        <strong>无需注册，进度会自动保存</strong>
+        <span>直接开始即可。只有需要换设备继续时，才选择用邮箱备份。</span>
       </section>
       <section className="workspace" aria-busy={status === "loading" || status === "saving"}>
         {signals.map((signal, index) => (

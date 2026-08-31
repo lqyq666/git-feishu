@@ -29,14 +29,14 @@ export function AccountRecoveryForm() {
           { emailRedirectTo: redirectTo },
         );
         if (updateError) throw updateError;
-        setMessage("验证邮件已发送。打开邮件中的链接后，此匿名进度会绑定到你的邮箱。");
+        setMessage("备份邮件已发送。打开邮件中的链接后，这段进度就能在其他设备找回。");
       } else {
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email,
           options: { emailRedirectTo: redirectTo, shouldCreateUser: false },
         });
         if (signInError) throw signInError;
-        setMessage("登录链接已发送。打开邮件中的链接后，会回到你的 Day 2 进度。");
+        setMessage("续接邮件已发送。打开邮件中的链接后，会回到你的探索进度。");
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "发送失败，请稍后重试。");
@@ -47,10 +47,10 @@ export function AccountRecoveryForm() {
 
   return (
     <form className="recovery-form" onSubmit={bindOrSignIn}>
-      <label>用于找回进度的邮箱
+      <label>备份邮箱（可选）
         <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
       </label>
-      <button className="primary-button" disabled={sending} type="submit">{sending ? "正在发送…" : "绑定或登录"}</button>
+      <button className="primary-button" disabled={sending} type="submit">{sending ? "正在发送…" : "发送验证链接"}</button>
       {message ? <p className="form-message" role="status">{message}</p> : null}
     </form>
   );

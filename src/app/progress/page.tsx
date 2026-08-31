@@ -21,7 +21,8 @@ export default async function ProgressPage() {
       <h1>{dayTwoAvailable ? "Day 1 已完成，下一步是把一个信号交给现实检验。" : "你的探索还停在 Day 1。"}</h1>
       <div className="progress-card"><span>当前状态</span><strong>{state === "DAY_2_ACTIVE" ? "Day 2 进行中" : state === "DAY_2_READY" ? "Day 2 已就绪" : "Day 1 欲望地图"}</strong></div>
       {dayTwoAvailable ? <Link className="primary-link" href="/day-2">继续 Day 2</Link> : <Link className="primary-link" href="/">继续填写 Day 1</Link>}
-      <Link className="text-link" href="/login">绑定邮箱，在新设备继续</Link>
+      <p className="continuity-note">当前设备无需登录，进度会自动保存。</p>
+      <Link className="text-link optional-link" href="/login">可选：用邮箱备份到其他设备</Link>
     </main>
   );
 }
