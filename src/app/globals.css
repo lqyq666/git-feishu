@@ -112,6 +112,7 @@ input:focus, textarea:focus, select:focus { outline: 3px solid #b9dec9; border-c
 .paywall ul { padding-left: 22px; line-height: 1.8; color: #dce9e1; }
 .paywall .eyebrow, .unlocked-panel > p, .next-action > span { color: #9dd2ba; }
 .paywall .text-link { color: #bce4d1; }
+.paywall .form-message { color: #ffd7ca; }
 .paywall-actions { display: grid; align-items: start; justify-items: start; gap: 4px; }
 .task-wizard { display: grid; gap: 24px; }
 .task-brief details { color: var(--muted); line-height: 1.65; }
