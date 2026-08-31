@@ -12,7 +12,7 @@ export default function LoginPage() {
       <Link className="primary-link" href="/progress">继续我的探索</Link>
       <section className="optional-backup" aria-labelledby="backup-title">
         <h2 id="backup-title">需要换设备继续？</h2>
-        <p>可以选择留下邮箱。无需设置密码，我们只发送一次验证链接来确认进度属于你。</p>
+        <p>输入邮箱后，我们会发送 6 位验证码。在当前页面填入即可，不用设置密码，也不用点击邮件链接。</p>
         <AccountRecoveryForm />
       </section>
     </main>

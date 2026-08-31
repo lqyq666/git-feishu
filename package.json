@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:domain": "vitest run src/lib/exploration/domain.test.ts"
+    "test:domain": "vitest run src/lib/exploration/domain.test.ts",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
