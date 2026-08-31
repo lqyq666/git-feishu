@@ -27,7 +27,7 @@ function contextFor(day: number, evidence: EvidenceRow[]) {
   const experimentB = byKind("DAY_6_EXPERIMENT_B");
   const contexts: Record<number, { title: string; items: string[] }> = {
     3: { title: "今天要让真人回答的问题", items: [scan.candidateDirection, scan.question].filter(Boolean) },
-    4: { title: "真人建议你先做的实验", items: [contact.suggestedExperiment, contact.surprise].filter(Boolean) },
+    4: { title: "真人接触纠正了什么", items: [contact.outreachCopy, contact.replyFinding].filter(Boolean) },
     5: { title: "今天要交给真人的结果", items: [experimentA.direction, experimentA.artifact].filter(Boolean) },
     6: { title: "实验 B 必须形成对照", items: [`实验 A：${experimentA.direction ?? "未记录"}`, feedback.unexpectedFeedback].filter(Boolean) },
     7: { title: "判断只能基于这两次行动", items: [`实验 A：${experimentA.direction ?? "未记录"}`, `实验 B：${experimentB.direction ?? "未记录"}`, experimentB.comparison].filter(Boolean) },
@@ -44,11 +44,13 @@ export async function DailyTaskPage({ day }: { day: number }) {
   if (!userData.user) redirect("/");
   const { data: exploration } = await supabase
     .from("explorations")
-    .select("id,state,current_day")
+    .select("id,state,current_day,current_stage,status")
     .eq("user_id", userData.user.id)
     .maybeSingle();
   if (!exploration) redirect("/");
-  if (exploration.state === "ROUND_COMPLETE" || exploration.current_day !== day) redirect("/progress");
+  if (exploration.status === "COMPLETED" || exploration.state === "ROUND_COMPLETE" || (exploration.current_stage ?? exploration.current_day) !== day) redirect("/progress");
+  const { data: fullAccess } = await supabase.rpc("has_full_exploration_entitlement", { target_user: userData.user.id });
+  if (day > 1 && fullAccess !== true) redirect("/desire-map");
 
   const { data: allEvidence } = await supabase
     .from("evidence")
@@ -56,9 +58,9 @@ export async function DailyTaskPage({ day }: { day: number }) {
     .eq("exploration_id", exploration.id)
     .order("created_at");
   const evidence = (allEvidence ?? []) as EvidenceRow[];
+  const { data: taskRecord } = await supabase.from("exploration_tasks").select("draft_data,submitted_data,revision,status").eq("exploration_id", exploration.id).eq("task_number", day).maybeSingle();
   const savedEvidence = evidence.find((row) => row.kind === task.evidenceKind && row.position === 1);
-
-  let initialContent = contentOf(savedEvidence);
+  let initialContent = taskRecord?.draft_data && typeof taskRecord.draft_data === "object" ? taskRecord.draft_data as Record<string, string> : contentOf(savedEvidence);
   if (day === 2 && Object.keys(initialContent).length === 0) {
     const { data: legacyHypothesis } = await supabase
       .from("direction_hypotheses")
@@ -77,10 +79,10 @@ export async function DailyTaskPage({ day }: { day: number }) {
 
   return (
     <main className="shell narrow-shell task-page">
-      <p className="day-marker">Day {day} / 7</p>
+      <p className="day-marker">任务 {day} / 7</p>
       <h1>{task.title}</h1>
       {taskContext.items.length ? <section className="task-context"><strong>{taskContext.title}</strong><ul>{taskContext.items.map((item) => <li key={item}>{item}</li>)}</ul></section> : null}
-      <DailyTaskWorkspace explorationId={exploration.id} experimentADirection={experimentADirection} initialContent={initialContent} task={task} />
+      <DailyTaskWorkspace explorationId={exploration.id} experimentADirection={experimentADirection} initialContent={initialContent} initialRevision={taskRecord?.revision ?? 1} task={task} />
       <Link className="text-link" href="/progress">暂时离开，回到我的进度</Link>
     </main>
   );

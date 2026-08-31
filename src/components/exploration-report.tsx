@@ -1,52 +1,14 @@
-type EvidenceRow = { kind: string; position: number; content: unknown };
-
-function contentOf(row: EvidenceRow | undefined) {
-  return (row?.content && typeof row.content === "object" ? row.content : {}) as Record<string, string>;
-}
-
-export function ExplorationReport({ evidence }: { evidence: EvidenceRow[] }) {
-  const desires = evidence.filter((item) => item.kind === "DAY_1_DESIRE_SIGNAL").sort((a, b) => a.position - b.position).map(contentOf);
-  const scan = contentOf(evidence.find((item) => item.kind === "DAY_2_REALITY_SCAN"));
-  const contact = contentOf(evidence.find((item) => item.kind === "DAY_3_HUMAN_CONTACT"));
-  const experimentA = contentOf(evidence.find((item) => item.kind === "DAY_4_EXPERIMENT_A"));
-  const feedback = contentOf(evidence.find((item) => item.kind === "DAY_5_REAL_FEEDBACK"));
-  const experimentB = contentOf(evidence.find((item) => item.kind === "DAY_6_EXPERIMENT_B"));
-  const decision = contentOf(evidence.find((item) => item.kind === "DAY_7_DECISION"));
-
-  return (
-    <div className="report-sections">
-      <section className="report-section">
-        <h2>这轮探索从哪里开始</h2>
-        <ul className="evidence-list">{desires.map((desire, index) => <li key={index}><strong>{desire.admiredPerson}</strong><span>{desire.admiredQuality}；愿意承担：{desire.acceptedCost}</span></li>)}</ul>
-      </section>
-      <section className="report-section">
-        <h2>现实纠正了什么</h2>
-        <dl className="report-facts">
-          <div><dt>调查方向</dt><dd>{scan.candidateDirection}</dd></div>
-          <div><dt>真实工作</dt><dd>{scan.actualWork}</dd></div>
-          <div><dt>真人碰撞</dt><dd>{contact.surprise}</dd></div>
-          <div><dt>真实反馈</dt><dd>{feedback.unexpectedFeedback}</dd></div>
-        </dl>
-      </section>
-      <section className="report-section experiment-comparison">
-        <h2>两次行动的比较</h2>
-        <div><strong>实验 A · {experimentA.direction}</strong><p>{experimentA.whatHappened}</p><span>专注 {experimentA.focusScore}/5 · 继续意愿 {experimentA.continueScore}/5</span></div>
-        <div><strong>实验 B · {experimentB.direction}</strong><p>{experimentB.whatHappened}</p><span>专注 {experimentB.focusScore}/5 · 继续意愿 {experimentB.continueScore}/5</span></div>
-        <p className="comparison-conclusion">{experimentB.comparison}</p>
-      </section>
-      <section className="decision-panel">
-        <h2>当前方向判断</h2>
-        <dl className="report-facts">
-          <div><dt>继续验证</dt><dd><strong>{decision.continueDirection}</strong><br />{decision.continueEvidence}</dd></div>
-          <div><dt>暂时排除</dt><dd><strong>{decision.rejectedDirection}</strong><br />{decision.rejectedEvidence}</dd></div>
-          {decision.insufficientDirection ? <div><dt>证据不足</dt><dd>{decision.insufficientDirection}</dd></div> : null}
-        </dl>
-      </section>
-      <section className="next-experiment">
-        <p>未来 14 天唯一值得做的事</p>
-        <h2>{decision.nextExperiment}</h2>
-        <span>完成标准：{decision.successCriterion}</span>
-      </section>
-    </div>
-  );
+type TaskRow = { task_number: number; submitted_data: unknown; completed_at: string | null };
+type SignalRow = { position: number; signal_type: string; source_label: string; attraction: string; willing_cost: string };
+type EvidenceRow = { evidence_type: string; content: string | null; external_url: string | null; created_at: string };
+const dataOf = (row: TaskRow | undefined) => (row?.submitted_data && typeof row.submitted_data === "object" ? row.submitted_data : {}) as Record<string, string>;
+export function ExplorationReport({ tasks, signals, evidence }: { tasks: TaskRow[]; signals: SignalRow[]; evidence: EvidenceRow[] }) {
+  const task = (number: number) => dataOf(tasks.find((row) => row.task_number === number)); const scan = task(2); const contact = task(3); const a = task(4); const feedback = task(5); const b = task(6); const decision = task(7);
+  const counts = evidence.reduce<Record<string, number>>((all, item) => ({ ...all, [item.evidence_type]: (all[item.evidence_type] ?? 0) + 1 }), {});
+  const experiments = [
+    { goal: `继续验证：${decision.continueDirection || a.direction || "当前候选方向"}`, action: decision.nextExperiment || "再完成一次可见产物并交给真人", evidence: decision.successCriterion || "可检查的作品和一条真人反馈", judgment: "完成后判断是否愿意再投入 10 小时" },
+    { goal: `反证：${decision.rejectedDirection || b.direction || "暂时排除的方向"}`, action: "只做一次低成本反证，不靠想象永久放弃", evidence: "一份可见产物或一次真实接触", judgment: "新证据是否改变暂时排除结论" },
+    { goal: `补证：${decision.insufficientDirection || "仍不确定的关键问题"}`, action: decision.insufficientReason || scan.question || "找到最缺的一类现实证据", evidence: "一条此前没有的证据类型", judgment: "能否从证据不足转为继续或排除" },
+  ];
+  return <div className="report-sections"><section className="report-section"><h2>最初的不确定与三条欲望信号</h2><p>{scan.selectedSignal || "我从羡慕、好奇与不满开始，没有先给自己贴职业标签。"}</p><ul className="evidence-list">{signals.map((signal) => <li key={signal.position}><strong>{signal.source_label}</strong><span>{signal.attraction}；愿意承担：{signal.willing_cost}</span></li>)}</ul></section><section className="report-section"><h2>现实行动时间线</h2><ol className="timeline">{tasks.filter((row) => row.completed_at).map((row) => <li key={row.task_number}><strong>任务 {row.task_number}</strong><span>{new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(row.completed_at!))}</span></li>)}</ol></section><section className="report-section"><h2>证据账本</h2><div className="metric-row"><strong>{evidence.length}</strong><span>条现实证据</span></div><ul className="compact-list">{Object.entries(counts).map(([kind, count]) => <li key={kind}>{kind} · {count}</li>)}</ul><dl className="report-facts"><div><dt>现实样本</dt><dd>{scan.realitySample}</dd></div><div><dt>真人接触</dt><dd>{contact.replyFinding}</dd></div><div><dt>真实反馈</dt><dd>{feedback.unclear}</dd></div></dl></section><section className="report-section experiment-comparison"><h2>方向 A / B 证据矩阵</h2><div><strong>A · {a.direction}</strong><p>{a.whatHappened}</p><span>专注 {a.focusScore}/5 · 继续意愿 {a.continueScore}/5</span></div><div><strong>B · {b.direction}</strong><p>{b.whatHappened}</p><span>专注 {b.focusScore}/5 · 继续意愿 {b.continueScore}/5</span></div><p className="comparison-conclusion">{b.comparison}</p></section><section className="decision-panel"><h2>当前阶段判断</h2><dl className="report-facts"><div><dt>继续</dt><dd><strong>{decision.continueDirection}</strong><br />{decision.continueEvidence}</dd></div><div><dt>暂时排除</dt><dd><strong>{decision.rejectedDirection}</strong><br />{decision.rejectedEvidence}</dd></div><div><dt>证据不足</dt><dd>{decision.insufficientDirection || "没有强行补一个答案"}<br />{decision.insufficientReason}</dd></div><div><dt>下一实验</dt><dd>{decision.nextExperiment}</dd></div></dl></section><section className="report-section"><h2>现在可以停止担心的事</h2><ul><li>不必一次选定终身方向：当前结论只是阶段判断。</li><li>没有回复不等于行动失败：发出联系本身就是现实证据。</li><li>一次未完成不等于“我不行”：阻力会被转成更小的恢复动作。</li></ul></section><section className="report-section"><h2>未来 14 天的三个实验选项</h2><div className="experiment-plan">{experiments.map((experiment, index) => <article key={experiment.goal}><span>实验 {index + 1}</span><h3>{experiment.goal}</h3><p><strong>行动：</strong>{experiment.action}</p><p><strong>截止：</strong>14 天内</p><p><strong>证据：</strong>{experiment.evidence}</p><p><strong>判断：</strong>{experiment.judgment}</p></article>)}</div></section><section className="identity-summary"><p>我的新身份描述</p><h2>我不是“已经找到答案的人”，而是一个能用现实行动减少不确定的人。</h2></section></div>;
 }

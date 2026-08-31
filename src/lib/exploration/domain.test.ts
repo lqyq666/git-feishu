@@ -1,30 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { validateDayOne } from "./domain";
+import { normalizeSignal, resolveNewestDraft, validateDayOne } from "./domain";
+
+const signal = (type: "ENVY" | "CURIOSITY" | "DISSATISFACTION", source: string, attraction = "持续行动", willingCost = "每周投入四小时") => ({ type, source, attraction, willingCost, quickChips: [] });
 
 describe("validateDayOne", () => {
   it("requires all three signals", () => {
     const result = validateDayOne([
-      { admiredPerson: "A", admiredQuality: "行动", acceptedCost: "花时间" },
+      signal("ENVY", "学长"),
     ]);
     expect(result.complete).toBe(false);
   });
 
   it("rejects an incomplete signal", () => {
     const result = validateDayOne([
-      { admiredPerson: "A", admiredQuality: "行动", acceptedCost: "花时间" },
-      { admiredPerson: "B", admiredQuality: "", acceptedCost: "被拒绝" },
-      { admiredPerson: "C", admiredQuality: "作品", acceptedCost: "练习" },
+      signal("ENVY", "学长"), signal("CURIOSITY", "产品", ""), signal("DISSATISFACTION", "重复内耗"),
     ]);
     expect(result.complete).toBe(false);
   });
 
   it("normalizes and accepts three complete signals", () => {
     const result = validateDayOne([
-      { admiredPerson: "  学长  ", admiredQuality: "持续输出", acceptedCost: "每周 4 小时" },
-      { admiredPerson: "朋友", admiredQuality: "敢于沟通", acceptedCost: "被拒绝" },
-      { admiredPerson: "老师", admiredQuality: "研究问题", acceptedCost: "做枯燥记录" },
+      signal("ENVY", "  学长  "), signal("CURIOSITY", "真实项目"), signal("DISSATISFACTION", "只收藏不行动"),
     ]);
     expect(result.complete).toBe(true);
-    if (result.complete) expect(result.signals[0].admiredPerson).toBe("学长");
+    if (result.complete) expect(result.signals[0].source).toBe("学长");
+  });
+
+  it("maps legacy signals without losing content", () => {
+    expect(normalizeSignal({ admiredPerson: "学姐", admiredQuality: "作品", acceptedCost: "练习" })).toMatchObject({ type: "LEGACY", source: "学姐", attraction: "作品", willingCost: "练习" });
+  });
+
+  it("never overwrites submitted server data with a stale local draft", () => {
+    const local = { revision: 8, updatedAt: "2026-08-31T12:00:00Z", value: "local" };
+    const server = { revision: 7, updatedAt: "2026-08-31T11:00:00Z", value: "server", submitted: true };
+    expect(resolveNewestDraft(local, server)).toBe(server);
   });
 });
