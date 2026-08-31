@@ -31,7 +31,9 @@ export function DayOneWorkspace() {
     async function restoreOrCreateSession() {
       const supabase = createSupabaseBrowserClient();
       const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
-      if (currentUserError) throw currentUserError;
+      if (currentUserError && currentUserError.name !== "AuthSessionMissingError") {
+        throw currentUserError;
+      }
       const { data: authData, error: authError } = currentUser.user
         ? { data: { user: currentUser.user }, error: null }
         : await supabase.auth.signInAnonymously();
@@ -45,15 +47,22 @@ export function DayOneWorkspace() {
       });
       if (profileError) throw profileError;
 
-      const { data: exploration, error: explorationError } = await supabase
+      const explorationResult = await supabase
         .from("explorations")
-        .upsert(
-          { user_id: user.id, state: "EXPLORING_DESIRE", current_day: 1, updated_at: new Date().toISOString() },
-          { onConflict: "user_id", ignoreDuplicates: true },
-        )
         .select("id,state")
-        .single();
-      if (explorationError) throw explorationError;
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (explorationResult.error) throw explorationResult.error;
+      let exploration = explorationResult.data;
+      if (!exploration) {
+        const { data: createdExploration, error: createExplorationError } = await supabase
+          .from("explorations")
+          .insert({ user_id: user.id, state: "EXPLORING_DESIRE", current_day: 1 })
+          .select("id,state")
+          .single();
+        if (createExplorationError) throw createExplorationError;
+        exploration = createdExploration;
+      }
       if (exploration.state === "DAY_2_READY" || exploration.state === "DAY_2_ACTIVE") {
         router.replace("/progress");
         return;

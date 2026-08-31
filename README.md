@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 大学生现实探索系统
 
-## Getting Started
+一个可恢复的 Day 1 → Day 2 Web MVP。用户先匿名进入，完成三条欲望信号后进入 Day 2，并可用邮箱绑定当前账号以跨设备找回进度。
 
-First, run the development server:
+## 本地运行
+
+1. 将 `.env.example` 复制为 `.env.local`。
+2. 填入 Supabase Project URL 与浏览器可用的 publishable/legacy anon key。
+3. 安装依赖并启动：
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 `http://localhost:3000`。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 数据库
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 迁移：`supabase/migrations/0001_exploration.sql`
+- 手动回滚：`supabase/rollback/0001_exploration_down.sql`
 
-## Learn More
+迁移创建 `profiles`、`explorations`、`evidence`、`direction_hypotheses`，并为全部用户数据启用基于 `auth.uid()` 的 RLS。
 
-To learn more about Next.js, take a look at the following resources:
+## 验证
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run test:domain
+npm run lint
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+不要提交 `.env.local`、数据库密码或任何 secret/service-role key。

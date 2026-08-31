@@ -57,6 +57,14 @@ alter table public.explorations enable row level security;
 alter table public.evidence enable row level security;
 alter table public.direction_hypotheses enable row level security;
 
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on table
+  public.profiles,
+  public.explorations,
+  public.evidence,
+  public.direction_hypotheses
+to authenticated;
+
 create policy "users manage own profile" on public.profiles
   for all to authenticated
   using ((select auth.uid()) = id)
