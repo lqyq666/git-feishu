@@ -1,6 +1,6 @@
 # 大学生现实探索系统
 
-一个可恢复的 Day 1 → Day 2 Web MVP。用户先匿名进入，完成三条欲望信号后进入 Day 2，并可用邮箱绑定当前账号以跨设备找回进度。
+一个面向迷茫大学生的可恢复现实探索系统。用户无需按年级分流或先注册，通过 Day 1–7 的“行动 → 证据 → 判断 → 再行动”循环形成当前方向判断，并可用邮箱验证码跨设备找回进度。
 
 ## 本地运行
 
@@ -17,15 +17,16 @@ npm run dev
 
 ## 数据库
 
-- 迁移：`supabase/migrations/0001_exploration.sql`
-- 手动回滚：`supabase/rollback/0001_exploration_down.sql`
+- 初始迁移：`supabase/migrations/0001_exploration.sql`
+- 完整探索循环：`supabase/migrations/0002_complete_exploration_loop.sql`
+- 手动回滚：`supabase/rollback/`
 
-迁移创建 `profiles`、`explorations`、`evidence`、`direction_hypotheses`，并为全部用户数据启用基于 `auth.uid()` 的 RLS。
+迁移创建 `profiles`、`explorations`、`evidence`、`direction_hypotheses`，为全部用户数据启用基于 `auth.uid()` 的 RLS，并阻止没有已提交证据的进度推进。
 
 ## 验证
 
 ```bash
-npm run test:domain
+npm run test:unit
 npm run lint
 npm run build
 ```

@@ -3,12 +3,12 @@
 :root { --ink: #1d2b24; --muted: #607068; --paper: #f7f6f0; --panel: #fff; --line: #dce3d9; --accent: #176b4d; --accent-hover: #0f513a; --soft: #e8f3ed; }
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100%; background: var(--paper); color: var(--ink); font-family: Arial, "Microsoft YaHei", sans-serif; }
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 .shell { width: min(100% - 32px, 860px); margin: 0 auto; padding: 72px 0 96px; }
 .narrow-shell { width: min(100% - 32px, 640px); }
 .hero { max-width: 720px; }
 .eyebrow { margin: 0 0 12px; color: var(--accent); font-size: 14px; font-weight: 700; letter-spacing: .08em; }
-h1 { margin: 0; font-size: clamp(34px, 6vw, 58px); line-height: 1.14; letter-spacing: -.04em; }
+h1 { margin: 0; font-size: 2.75rem; line-height: 1.14; letter-spacing: -.035em; text-wrap: balance; }
 .lede { color: var(--muted); font-size: 18px; line-height: 1.7; }
 .notice, .progress-card { display: grid; gap: 4px; margin: 36px 0 24px; padding: 18px 20px; border: 1px solid #cde2d6; border-radius: 16px; background: var(--soft); }
 .notice span, .progress-card span { color: var(--muted); }
@@ -27,9 +27,9 @@ h1 { margin: 0; font-size: clamp(34px, 6vw, 58px); line-height: 1.14; letter-spa
 .otp-actions button { border: 0; padding: 4px 0; background: transparent; color: var(--accent); cursor: pointer; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .otp-actions button:disabled { cursor: wait; opacity: .6; }
 label { display: grid; gap: 7px; font-weight: 700; }
-input, textarea { width: 100%; border: 1px solid #bdc9c0; border-radius: 10px; padding: 12px; background: #fff; color: var(--ink); font-weight: 400; }
+input, textarea, select { width: 100%; min-height: 48px; border: 1px solid #aebdb2; border-radius: 10px; padding: 12px; background: #fff; color: var(--ink); font-weight: 400; }
 textarea { min-height: 112px; resize: vertical; }
-input:focus, textarea:focus { outline: 3px solid #b9dec9; border-color: var(--accent); }
+input:focus, textarea:focus, select:focus { outline: 3px solid #b9dec9; border-color: var(--accent); }
 .radio-row { grid-template-columns: auto 1fr; align-items: start; font-weight: 400; }
 .radio-row input { width: auto; margin-top: 4px; }
 .primary-button, .primary-link { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; border: 0; border-radius: 999px; padding: 0 24px; background: var(--accent); color: white; cursor: pointer; font-weight: 700; text-decoration: none; }
@@ -38,4 +38,41 @@ input:focus, textarea:focus { outline: 3px solid #b9dec9; border-color: var(--ac
 .form-message { margin: 0; color: #a13b20; line-height: 1.55; }
 .form-message[data-tone="info"] { color: var(--muted); }
 .text-link { display: inline-block; margin-top: 22px; color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 600px) { .shell { padding-top: 48px; } .signal-card, .recovery-form { padding: 18px; } }
+.day-marker { margin: 0 0 12px; color: var(--accent); font-size: 15px; font-weight: 700; }
+.task-page h1 { margin-bottom: 32px; }
+.task-context { margin: -8px 0 26px; padding: 18px 20px; border-radius: 14px; background: var(--soft); }
+.task-context ul { display: grid; gap: 6px; margin: 10px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.55; }
+.task-brief { padding: 24px 0; border-block: 1px solid var(--line); }
+.task-brief h2, .report-section h2, .decision-panel h2 { margin: 0; font-size: 1.35rem; line-height: 1.3; }
+.task-brief p { margin: 8px 0 14px; color: var(--muted); line-height: 1.65; }
+.task-brief ol { margin: 0; padding-left: 24px; color: var(--muted); line-height: 1.75; }
+.save-status { min-height: 24px; margin: 0; color: var(--muted); font-size: 14px; }
+.save-status[data-state="saved"] { color: var(--accent); }
+.save-status[data-state="error"] { color: #8c321d; }
+.evidence-form { display: grid; gap: 20px; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.optional-label { margin-left: 8px; color: var(--muted); font-size: 13px; font-weight: 400; }
+.completion-bar { display: grid; gap: 18px; padding: 22px 0 0; border-top: 1px solid var(--line); }
+.completion-bar strong { display: block; margin-bottom: 4px; }
+.completion-bar p { margin: 0; color: var(--muted); line-height: 1.6; }
+.progress-track { height: 8px; margin: 28px 0 24px; overflow: hidden; border-radius: 999px; background: #dce5df; }
+.progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.report-page > .lede { margin-bottom: 36px; }
+.report-sections { display: grid; gap: 38px; }
+.report-section { padding-top: 28px; border-top: 1px solid var(--line); }
+.evidence-list { display: grid; gap: 14px; margin: 18px 0 0; padding: 0; list-style: none; }
+.evidence-list li { display: grid; gap: 3px; }
+.evidence-list span, .report-facts dd, .experiment-comparison p, .experiment-comparison span { color: var(--muted); line-height: 1.65; }
+.report-facts { display: grid; gap: 18px; margin: 18px 0 0; }
+.report-facts div { display: grid; gap: 5px; }
+.report-facts dt { color: var(--accent); font-size: 14px; font-weight: 700; }
+.report-facts dd { margin: 0; }
+.experiment-comparison { display: grid; gap: 20px; }
+.experiment-comparison h2 { margin-bottom: 2px; }
+.experiment-comparison p { margin: 6px 0; }
+.comparison-conclusion { padding-top: 18px; border-top: 1px solid var(--line); color: var(--ink) !important; font-weight: 700; }
+.decision-panel { padding: 24px; border-radius: 16px; background: var(--soft); }
+.next-experiment { padding: 28px 0; border-block: 1px solid var(--line); }
+.next-experiment p { margin: 0 0 8px; color: var(--accent); font-weight: 700; }
+.next-experiment h2 { margin: 0 0 12px; font-size: 1.5rem; line-height: 1.4; }
+.next-experiment span { color: var(--muted); line-height: 1.6; }
+@media (max-width: 600px) { .shell { padding-top: 48px; } h1 { font-size: 2.15rem; } .signal-card, .recovery-form, .evidence-form { padding: 18px; } }

@@ -4,7 +4,13 @@ export type ExplorationState =
   | "UNKNOWN"
   | "EXPLORING_DESIRE"
   | "DAY_2_READY"
-  | "DAY_2_ACTIVE";
+  | "DAY_2_ACTIVE"
+  | "DAY_3_READY"
+  | "DAY_4_READY"
+  | "DAY_5_READY"
+  | "DAY_6_READY"
+  | "DAY_7_READY"
+  | "ROUND_COMPLETE";
 
 export type DesireSignal = {
   admiredPerson: string;
